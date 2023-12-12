@@ -1,0 +1,280 @@
+---
+title: "FERIT Anketa o popularizaciji znanosti 2022."
+title-block-banner: "#053E59"
+date: 2022-12-05
+date-format: "MMM YYYY."
+author-title: ''
+affiliation-title: ''
+date-title: ''
+lang: 'hr'
+number-sections: true
+shift-heading-level-by: -1
+author:
+  - name: "Marin Benčević"
+    email: "marin.bencevic@ferit.hr"
+    affiliations:
+        Povjerenstvo za popularizaciju znanosti FERIT-a
+editor: visual
+jupyter: python3
+format:
+    html:
+        theme: cosmo
+    hikmah-pdf:
+        toc: true
+        toc-title: Sadržaj
+        toc-depth: 2
+        colorlinks: true
+---
+
+\pagebreak
+
+```{python}
+#| echo: false
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_theme()
+df = pd.read_csv('FERIT Znanost 2022.csv')
+
+columns = [
+    'time',
+    'studij',
+    'godina',
+    'upoznatost-fakultet',
+    'upoznatost-nastavnik',
+    'strucnjaci',
+    'upoznatost-ig',
+    'vrijeme-nastavnik',
+    'vrijeme-doktorand',
+    'procitani-radovi',
+    'zainteresiranost-studij',
+    'zainteresiranost-doktorski',
+    'zainteresiranost-druga',
+    'komentar'
+]
+
+questions = df.columns
+questions = [q.replace('[', '').replace(']', '').replace('Upoznatost sa znanstvenim radom ', '') for q in questions]
+question_to_column_name = dict(list(zip(columns, questions)))
+
+df.columns = columns
+
+df.studij = df.studij.replace('Diplomski Automobilsko računarstvo i komunikacije', 'Diplomski Automobilsko');
+```
+
+
+## Sažetak
+
+Glavni zaključci ankete su sljedeći:
+
+- **Više od 50% ispitanika (70 od 129) je zainteresirano za sudjelovanje na znanstvenim radovima tijekom studija.** U najvećem su udjelu to studenti diplomskih studija i studenti 3. godine preddiplomskih studija.
+- Međutim, studenti su **loše informirani** o znanstvenom radu fakulteta i istraživačkim grupama. Također, studenti imaju loše poznavanje čime se bave njihovi nastavnici.
+- Studenti vjeruju da nastavnici i doktorandi koriste preko 40% svojeg vremena na znanost i nemaju loše mišljenje o znanstvenoj kompetenciji njihovih nastavnika.
+- Studenti čitaju relativno mali broj znanstvenih radova tijekom svojeg studija.
+- Studenti 3. godine su trenutno u najvećem postotku zainteresirani za znanosti i poslijediplomski studij, tako da nam na diplomske dolazi motivirana generacija studenata. :)
+
+Zaključci upućuju na to da su studenti **zainteresirani** ali **neinformirani** o znanstvenom radu. Dakle, preduvjete imamo, samo je stvar pružanja prilike studentima za znanstveni rad putem popularizacije znanosti, gostujućih predavanja, naprednijih tema za diplomske i završne radove, sudjelovanjima na projektima, stručnim praksama i sl.
+
+\pagebreak
+
+**Komentari studenata:**
+
+```{python}
+#| echo: false
+#| output: asis
+for comment in df['komentar'].replace('', np.nan).dropna():
+    if not str.isspace(comment):
+        print('> ``' + comment + '"\n')
+```
+
+
+**Cijela anketa**:
+
+[https://docs.google.com/forms/d/e/1FAIpQLSfnJNeyYjoQkvoUvGq1VNy8v92bfTyblDIygjcluPEKW8FBzA/viewform?usp=sf_link](https://docs.google.com/forms/d/e/1FAIpQLSfnJNeyYjoQkvoUvGq1VNy8v92bfTyblDIygjcluPEKW8FBzA/viewform?usp=sf_link)
+
+\pagebreak
+
+## Distribucija odgovora
+
+
+```{python}
+#| echo: false
+#| output: asis
+print(f'Ukupno ima {len(df)} ispitanika.')
+```
+
+
+```{python}
+#| echo: false
+plt.figure()
+plt.subplot(1, 2, 1)
+df_plot = df.groupby(['studij']).size()
+df_plot.plot(kind='pie', autopct='%.0f%%');
+```
+
+```{python}
+#| echo: false
+df_dipl = (df[(df['studij'].str.contains('Diplomski'))].groupby(['godina']).size() / len(df)) * 100
+df_pred = (df[(df['studij'].str.contains('Predd')) | (df['studij'].str.contains('Stručni'))].groupby(['godina']).size() / len(df)) * 100
+
+plt.figure(figsize=(7, 3))
+plt.subplot(1, 2, 1)
+sns.barplot(x=df_pred.index, y=df_pred.values)
+plt.title('Preddiplomski i stručni')
+plt.ylabel('[%]')
+plt.ylim(0, 35)
+plt.subplot(1, 2, 2);
+plt.title('Diplomski')
+plt.ylim(0, 35)
+sns.barplot(x=df_dipl.index, y=df_dipl.values);
+```
+
+## Upoznatost i mišljenje o znanosti na fakultetu
+
+### Upoznat/a sam sa znanstvenim radom fakulteta / nastavnika / istraživačkim grupama
+
+```{python}
+#| echo: false
+plt.figure(figsize=(5, 5.5))
+plt.subplot(3, 1, 1)
+plt.xlim(0, 40)
+df_plot = (df.groupby(['upoznatost-fakultet']).size() / len(df)) * 100
+df_plot = df_plot.iloc[[0, 1, 2, 4, 3]]
+df_plot.plot(kind='barh', ylabel='Fakulteta')
+plt.subplot(3, 1, 2)
+plt.xlim(0, 40)
+df_plot = (df.groupby(['upoznatost-nastavnik']).size() / len(df)) * 100
+df_plot = df_plot.iloc[[0, 1, 2, 4, 3]]
+df_plot.plot(kind='barh', ylabel='Nastavnika')
+plt.subplot(3, 1, 3)
+plt.xlim(0, 40)
+df_plot = (df.groupby(['upoznatost-ig']).size() / len(df)) * 100
+df_plot = df_plot.iloc[[0, 1, 2, 4, 3]]
+df_plot.plot(kind='barh', ylabel='Istraživačke grupe', xlabel='[%]', stacked=True)
+plt.show()
+```
+
+Postoji manji broj studenata koji su dobro upoznati s radom fakulteta, ali većina se ne slaže ili izrazito ne slaže s tvrdnjom da su upoznati.
+
+Studenti pokazuju puno manje poznavanje istraživačkih grupa u odnosu na prijašnja dva pitanja. Istraživačke su grupe do sada bile manje naglašene na našim web stranicama. Moguće je da će s novom web stranicom i većim fokusom na popularizaciju znanosti biti više upućeni.
+
+### Moji su nastavnici stručnjaci u svojem polju koji aktivno doprinose znanstvenoj zajednici
+
+```{python}
+#| echo: false
+plt.figure(figsize=(5, 1.5))
+df_plot = df.groupby(['strucnjaci']).size() / len(df) * 100
+df_plot = df_plot.iloc[[0, 1, 2, 4, 3]]
+df_plot.plot(kind='barh', stacked=True, ylabel='', xlabel='[%]')
+plt.show()
+```
+
+Studenti nemaju posebno loše mišljenje o svojim nastavnicima kao znanstvenicima, iako dobar dio studenata nema posebno mišljenje. Obzirom da je većina studenata neinformirana o istraživačkom radu nastavnika, moguće je da uzrok i ovdje neinformiranost.
+
+### Koliki postotak svojeg vremena nastavnik / doktoranad provodi na znanstvene aktivnosti (prema mišljenju studenata)
+
+```{python}
+#| echo: false
+plt.figure(figsize=(7, 3.75))
+plt.subplot(2, 1, 1)
+df_plot = df.groupby(['vrijeme-nastavnik']).size() / len(df) * 100
+df_plot.plot(kind='barh', ylabel='Nastavnici')
+plt.xlim(0, 40)
+plt.subplot(2, 1, 2)
+df_plot = df.groupby(['vrijeme-doktorand']).size() / len(df) * 100
+df_plot.plot(kind='barh', ylabel='Doktorandi', xlabel='[%]')
+plt.xlim(0, 40)
+plt.show()
+```
+
+Studenti imaju poprilično realno viđenje utroška vremena nastavnika i doktoranada. Kod doktoranada moguće je da u stvarnosti doktorandi i veći postotak svojeg vremena ulažu u znanstveni rad. Iz ovog se daje zaključiti da studenti imaju realističnu sliku toga što znači raditi u akademiji, posebice na našem fakultetu.
+
+\pagebreak
+
+## Zainteresiranost studenata za znanost
+
+### Broj pročitanih znanstvenih radova tijekom dosadašnjeg školovanja
+
+```{python}
+#| echo: false
+plt.figure(figsize=(7, 2))
+df_plot = df.groupby(['procitani-radovi']).size() / len(df) * 100
+df_plot = df_plot.reindex(df_plot.index[[0, 2, 3, 1]])
+df_plot.plot(kind='barh', ylabel='', xlabel='[%]')
+plt.show()
+```
+
+Obzirom da je većina ispitanika na preddiplomskom i stručnom studiju, za očekivati je da će brojke biti relativno niske. Unatoč tome, visok je udio studenata koji nikad tijekom školovanja nisu pročitali niti jedan znanstveni rad, što upućuje na nedostatak poticanja samostalnog istraživanja studenata, ili nedovoljan fokus na novitete u polju.
+
+### Zainteresiranost za znanost
+
+```{python}
+#| echo: false
+df_plot0 = df.groupby(['zainteresiranost-studij']).size() / len(df) * 100
+df_plot1 = df.groupby(['zainteresiranost-doktorski']).size() / len(df) * 100
+df_plot2 = df.groupby(['zainteresiranost-druga']).size() / len(df) * 100
+df_plot = pd.DataFrame({
+    'q': ['Znanost tijekom studija', 'Poslijediplomski na FERIT-u', 'Poslijediplomski drugdje'],
+    'Da': [df_plot0['Da'], df_plot1['Da'], df_plot2['Da']], 
+    'Ne': [df_plot0['Ne'], df_plot1['Ne'], df_plot2['Ne']], 
+    'Nisam siguran/a': [df_plot0['Nisam siguran/a'], df_plot1['Nisam siguran/a'], df_plot2['Nisam siguran/a']], 
+    })
+
+df_plot = df_plot.melt(id_vars='q').rename(columns=str.title)
+g = sns.catplot(kind='bar', data=df_plot, y='Q', x='Value', hue='Variable', orient='h', height=2.5, aspect=2.7)
+plt.ylabel('')
+plt.xlabel('[%]')
+g._legend.set_title(None)
+```
+
+**Iznenađujuće velik broj ispitanih studenata je zainteresirano za sudjelovanje na znanstvenim radovima tijekom školovanja (>50%).** 
+
+S tim na umu, potrebno je pronaći načine da bolje prezentiramo i uvedemo studente u suradnju na znanstvenim radovima. Bilo to putem stručnih praksi, diplomskih i završnih, manjih zadataka na projektima i sl.
+
+Dosta manji broj studenata je zainteresiran za poslijediplomski studij, ali utješna je činjenica što studenti ne prefereiraju poslijediplomske na drugim institucijama u odnosu na naš fakultet.
+
+#### Tko je zainteresiran za znanost tijekom studija?
+
+```{python}
+#| echo: false
+df_znan = df[df['zainteresiranost-studij'] == 'Da']
+df_dipl = (df_znan[(df_znan['studij'].str.contains('Diplomski'))].groupby(['godina']).size() / len(df)) * 100
+df_pred = (df_znan[(df_znan['studij'].str.contains('Predd')) | (df_znan['studij'].str.contains('Stručni'))].groupby(['godina']).size() / len(df)) * 100
+
+plt.figure(figsize=(6, 2.5))
+plt.subplot(1, 2, 1)
+sns.barplot(x=df_pred.index, y=df_pred.values)
+plt.title('Preddiplomski i stručni')
+plt.ylabel('% "Da" na znanost\ntijekom studija')
+plt.ylim(0, 20)
+plt.subplot(1, 2, 2);
+plt.title('Diplomski')
+plt.ylim(0, 20)
+sns.barplot(x=df_dipl.index, y=df_dipl.values);
+```
+
+Kako je i očekivano, veća je zainteresiranost kod studenata 3. godine prediplomskih i kod studenata na diplomskim studijima. Ovo nam ujedno govori i najbolje vrijeme za prezentiranje znanstvenog rada studentima.
+
+#### Tko je zainteresiran za poslijediplomski studij?**
+
+```{python}
+#| echo: false
+df_znan = df[(df['zainteresiranost-druga'] == 'Da') | (df['zainteresiranost-doktorski'] == 'Da')]
+df_dipl = (df_znan[(df_znan['studij'].str.contains('Diplomski'))].groupby(['godina']).size() / len(df)) * 100
+df_pred = (df_znan[(df_znan['studij'].str.contains('Predd')) | (df_znan['studij'].str.contains('Stručni'))].groupby(['godina']).size() / len(df)) * 100
+
+plt.figure(figsize=(6, 2.5))
+plt.subplot(1, 2, 1)
+sns.barplot(x=df_pred.index, y=df_pred.values)
+plt.title('Preddiplomski i stručni')
+plt.ylabel('% "Da" na poslijediplomski\n(FERIT i druge institucije)')
+plt.ylim(0, 20)
+plt.subplot(1, 2, 2);
+plt.title('Diplomski')
+plt.ylim(0, 20)
+sns.barplot(x=df_dipl.index, y=df_dipl.values);
+```
+
+Zanimljivo je da su studenti 3. godine diplomskog najzainteresiraniji, a zatim tek 1. i 2. godine diplomskog. Ako su rezultati statistički značajni, to može bit uslijed razlika među generacijama, a može biti i da studenti izgube interes tijekom diplomskog studija. Jedan od potencijalnih razloga za to može bit zaposlenje u industriji, ili nedovoljno prilika za rad u znanosti tijekom studija.
